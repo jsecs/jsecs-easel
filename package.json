@@ -1,0 +1,40 @@
+{
+  "name": "jsecs-easel",
+  "version": "0.0.1",
+  "description": "Bindings from jsecs to easel.js",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsecs/jsecs-easel.git"
+  },
+  "keywords": [
+    "jsecs",
+    "ecs",
+    "easel",
+    "canvas",
+    "2d",
+    "html5",
+    "renderer",
+    "games",
+    "engine"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jsecs/jsecs-easel/issues"
+  },
+  "homepage": "https://github.com/jsecs/jsecs-easel#readme",
+  "devDependencies": {
+    "babel-core": "^6.1.2",
+    "babel-loader": "^6.1.0",
+    "babel-plugin-transform-runtime": "^6.1.2",
+    "babel-preset-es2015": "^6.1.2",
+    "babel-preset-stage-0": "^6.1.2",
+    "jsecs-core": "0.0.1",
+    "lodash": "^4.6.1",
+    "webpack": "^1.12.14"
+  }
+}
