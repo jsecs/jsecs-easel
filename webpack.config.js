@@ -9,7 +9,8 @@ var baseConfig = {
       {
         test: /\.js$/,
         loader: 'babel',
-      },
+        exclude: /(node_modules|bower_components)/,
+      }
     ],
   },
   babel: {
