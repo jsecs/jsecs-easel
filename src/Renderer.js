@@ -10,6 +10,8 @@ export default class Renderer {
     this.stage = new createjs.Stage(this.domId);
     this.renderables = {};
 
+    this.loadQueue = new createjs.LoadQueue(true);
+
     const renderSystem = new System(this.engine, (entities) => {
       entities.forEach(({easelRenderable}) => {
         const entity = easelRenderable.getEntity();
@@ -22,7 +24,7 @@ export default class Renderer {
         }
         const easelObject = this.renderables[entityId];
         const props = entity[componentName];
-        renderer.applyChanges(easelObject, props, props) // not computing diff at the moment
+        renderer.applyChanges(easelObject, props, props, this) // not computing diff at the moment
       });
       this.stage.update(lastEvent);
     });
@@ -32,6 +34,12 @@ export default class Renderer {
         lastEvent = event;
         renderSystem.runNow();
       }
+    });
+  }
+
+  loadFile(id, src) {
+    this.loadQueue.loadFile({
+      id, src
     });
   }
 }

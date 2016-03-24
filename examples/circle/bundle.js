@@ -50,13 +50,13 @@
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _jsecsCore = __webpack_require__(4);
+	var _jsecsCore = __webpack_require__(10);
 
-	var _Circle = __webpack_require__(32);
+	var _Circle = __webpack_require__(31);
 
 	var _Circle2 = _interopRequireDefault(_Circle);
 
-	var _Rectangle = __webpack_require__(77);
+	var _Rectangle = __webpack_require__(78);
 
 	var _Rectangle2 = _interopRequireDefault(_Rectangle);
 
@@ -64,10 +64,11 @@
 
 	var engine = new _jsecsCore.ECS();
 	var Renderer = new _index2.default(engine, "canvas");
+	Renderer.loadFile('ground', './texture.jpg');
 
 	var beginSystem = new _jsecsCore.System(engine, function (entities) {
 	  entities.add(new _jsecsCore.Entity().attachGroup(_Circle2.default));
-	  entities.add(new _jsecsCore.Entity().attachGroup(_Rectangle2.default));
+	  entities.add(new _jsecsCore.Entity().attachGroup(_Rectangle2.default).set('rectangle.fill', 'ground'));
 	});
 
 	var MoveSystem = new _jsecsCore.PeriodicSystem(engine, function (entities) {
@@ -75,7 +76,7 @@
 	    var circle = _ref.circle;
 
 	    circle.x++;
-	    circle.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+	    circle.fill = '#' + Math.floor(Math.random() * 16777215).toString(16);
 	  });
 
 	  entities.forEach(function (_ref2) {
@@ -103,11 +104,11 @@
 
 	var _Renderer2 = _interopRequireDefault(_Renderer);
 
-	var _ComponentRenderer2 = __webpack_require__(25);
+	var _ComponentRenderer2 = __webpack_require__(3);
 
 	var _ComponentRenderer3 = _interopRequireDefault(_ComponentRenderer2);
 
-	var _ComponentGenerator2 = __webpack_require__(30);
+	var _ComponentGenerator2 = __webpack_require__(9);
 
 	var _ComponentGenerator3 = _interopRequireDefault(_ComponentGenerator2);
 
@@ -127,13 +128,17 @@
 	  value: true
 	});
 
-	var _classCallCheck2 = __webpack_require__(3);
+	var _classCallCheck2 = __webpack_require__(4);
 
 	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
 
-	var _jsecsCore = __webpack_require__(4);
+	var _createClass2 = __webpack_require__(5);
 
-	var _ComponentRenderer = __webpack_require__(25);
+	var _createClass3 = _interopRequireDefault(_createClass2);
+
+	var _jsecsCore = __webpack_require__(10);
+
+	var _ComponentRenderer = __webpack_require__(3);
 
 	var _ComponentRenderer2 = _interopRequireDefault(_ComponentRenderer);
 
@@ -141,49 +146,121 @@
 
 	var lastEvent = null;
 
-	var Renderer = function Renderer(engine, id) {
-	  var _this = this;
+	var Renderer = function () {
+	  function Renderer(engine, id) {
+	    var _this = this;
 
-	  (0, _classCallCheck3.default)(this, Renderer);
+	    (0, _classCallCheck3.default)(this, Renderer);
 
-	  this.engine = engine;
-	  this.domId = id;
-	  this.stage = new createjs.Stage(this.domId);
-	  this.renderables = {};
+	    this.engine = engine;
+	    this.domId = id;
+	    this.stage = new createjs.Stage(this.domId);
+	    this.renderables = {};
 
-	  var renderSystem = new _jsecsCore.System(this.engine, function (entities) {
-	    entities.forEach(function (_ref) {
-	      var easelRenderable = _ref.easelRenderable;
+	    this.loadQueue = new createjs.LoadQueue(true);
 
-	      var entity = easelRenderable.getEntity();
-	      var entityId = entity.id;
-	      var rendererId = easelRenderable.rendererId;
-	      var componentName = easelRenderable.componentName;
+	    var renderSystem = new _jsecsCore.System(this.engine, function (entities) {
+	      entities.forEach(function (_ref) {
+	        var easelRenderable = _ref.easelRenderable;
 
-	      var renderer = _ComponentRenderer2.default.getRenderer(rendererId);
-	      if (typeof _this.renderables[entityId] === 'undefined') {
-	        _this.renderables[entityId] = renderer.construct();
-	        _this.stage.addChild(_this.renderables[entityId]);
-	      }
-	      var easelObject = _this.renderables[entityId];
-	      var props = entity[componentName];
-	      renderer.applyChanges(easelObject, props, props); // not computing diff at the moment
+	        var entity = easelRenderable.getEntity();
+	        var entityId = entity.id;
+	        var rendererId = easelRenderable.rendererId;
+	        var componentName = easelRenderable.componentName;
+
+	        var renderer = _ComponentRenderer2.default.getRenderer(rendererId);
+	        if (typeof _this.renderables[entityId] === 'undefined') {
+	          _this.renderables[entityId] = renderer.construct();
+	          _this.stage.addChild(_this.renderables[entityId]);
+	        }
+	        var easelObject = _this.renderables[entityId];
+	        var props = entity[componentName];
+	        renderer.applyChanges(easelObject, props, props, _this); // not computing diff at the moment
+	      });
+	      _this.stage.update(lastEvent);
 	    });
-	    _this.stage.update(lastEvent);
-	  });
 
-	  createjs.Ticker.addEventListener("tick", function (event) {
-	    if (!event.paused) {
-	      lastEvent = event;
-	      renderSystem.runNow();
+	    createjs.Ticker.addEventListener("tick", function (event) {
+	      if (!event.paused) {
+	        lastEvent = event;
+	        renderSystem.runNow();
+	      }
+	    });
+	  }
+
+	  (0, _createClass3.default)(Renderer, [{
+	    key: 'loadFile',
+	    value: function loadFile(id, src) {
+	      this.loadQueue.loadFile({
+	        id: id, src: src
+	      });
 	    }
-	  });
-	};
+	  }]);
+	  return Renderer;
+	}();
 
 	exports.default = Renderer;
 
 /***/ },
 /* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _classCallCheck2 = __webpack_require__(4);
+
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+	var _createClass2 = __webpack_require__(5);
+
+	var _createClass3 = _interopRequireDefault(_createClass2);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var ComponentRenderer = function () {
+	  function ComponentRenderer(constructor, renderCallback) {
+	    (0, _classCallCheck3.default)(this, ComponentRenderer);
+
+	    this.constructor = constructor;
+	    this.renderCallback = renderCallback;
+	    this.id = ComponentRenderer.lastId++;
+	    ComponentRenderer.renderers[this.id] = this;
+	  }
+
+	  (0, _createClass3.default)(ComponentRenderer, [{
+	    key: "construct",
+	    value: function construct() {
+	      return new this.constructor();
+	    }
+	  }, {
+	    key: "applyChanges",
+	    value: function applyChanges(easelObject, changes, props, renderer) {
+	      this.renderCallback(easelObject, changes, props, renderer);
+	    }
+	  }, {
+	    key: "getId",
+	    value: function getId() {
+	      return this.id;
+	    }
+	  }], [{
+	    key: "getRenderer",
+	    value: function getRenderer(id) {
+	      return ComponentRenderer.renderers[id];
+	    }
+	  }]);
+	  return ComponentRenderer;
+	}();
+
+	ComponentRenderer.renderers = {};
+	ComponentRenderer.lastId = 0;
+	exports.default = ComponentRenderer;
+
+/***/ },
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -197,7 +274,95 @@
 	};
 
 /***/ },
-/* 4 */
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	exports.__esModule = true;
+
+	var _defineProperty = __webpack_require__(6);
+
+	var _defineProperty2 = _interopRequireDefault(_defineProperty);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = function () {
+	  function defineProperties(target, props) {
+	    for (var i = 0; i < props.length; i++) {
+	      var descriptor = props[i];
+	      descriptor.enumerable = descriptor.enumerable || false;
+	      descriptor.configurable = true;
+	      if ("value" in descriptor) descriptor.writable = true;
+	      (0, _defineProperty2.default)(target, descriptor.key, descriptor);
+	    }
+	  }
+
+	  return function (Constructor, protoProps, staticProps) {
+	    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+	    if (staticProps) defineProperties(Constructor, staticProps);
+	    return Constructor;
+	  };
+	}();
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = { "default": __webpack_require__(7), __esModule: true };
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(8);
+	module.exports = function defineProperty(it, key, desc){
+	  return $.setDesc(it, key, desc);
+	};
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	var $Object = Object;
+	module.exports = {
+	  create:     $Object.create,
+	  getProto:   $Object.getPrototypeOf,
+	  isEnum:     {}.propertyIsEnumerable,
+	  getDesc:    $Object.getOwnPropertyDescriptor,
+	  setDesc:    $Object.defineProperty,
+	  setDescs:   $Object.defineProperties,
+	  getKeys:    $Object.keys,
+	  getNames:   $Object.getOwnPropertyNames,
+	  getSymbols: $Object.getOwnPropertySymbols,
+	  each:       [].forEach
+	};
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _jsecsCore = __webpack_require__(10);
+
+	var generateComponentGroup = function generateComponentGroup(name, renderer, defaultProps) {
+	  var easelComponent = new _jsecsCore.Component('easelRenderable', {
+	    rendererId: renderer.id,
+	    componentName: name
+	  });
+	  var rendererComponent = new _jsecsCore.Component(name, defaultProps);
+	  return new _jsecsCore.ComponentGroup(easelComponent, rendererComponent);
+	};
+
+	exports.default = generateComponentGroup;
+
+/***/ },
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -207,31 +372,31 @@
 	});
 	exports.Component = exports.PeriodicSystem = exports.EntitiesManipulator = exports.ECS = exports.Entity = exports.System = exports.ComponentGroup = undefined;
 
-	var _componentGroup = __webpack_require__(5);
+	var _componentGroup = __webpack_require__(11);
 
 	var _componentGroup2 = _interopRequireDefault(_componentGroup);
 
-	var _system = __webpack_require__(8);
+	var _system = __webpack_require__(14);
 
 	var _system2 = _interopRequireDefault(_system);
 
-	var _entity = __webpack_require__(9);
+	var _entity = __webpack_require__(15);
 
 	var _entity2 = _interopRequireDefault(_entity);
 
-	var _ecs = __webpack_require__(10);
+	var _ecs = __webpack_require__(16);
 
 	var _ecs2 = _interopRequireDefault(_ecs);
 
-	var _entitiesManipulator = __webpack_require__(22);
+	var _entitiesManipulator = __webpack_require__(28);
 
 	var _entitiesManipulator2 = _interopRequireDefault(_entitiesManipulator);
 
-	var _periodicSystem = __webpack_require__(23);
+	var _periodicSystem = __webpack_require__(29);
 
 	var _periodicSystem2 = _interopRequireDefault(_periodicSystem);
 
-	var _component = __webpack_require__(24);
+	var _component = __webpack_require__(30);
 
 	var _component2 = _interopRequireDefault(_component);
 
@@ -247,7 +412,7 @@
 
 
 /***/ },
-/* 5 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -258,7 +423,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(12);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -287,7 +452,7 @@
 
 
 /***/ },
-/* 6 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -15364,10 +15529,10 @@
 	  }
 	}.call(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13)(module), (function() { return this; }())))
 
 /***/ },
-/* 7 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -15383,7 +15548,7 @@
 
 
 /***/ },
-/* 8 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -15454,7 +15619,7 @@
 
 
 /***/ },
-/* 9 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -15467,7 +15632,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(12);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -15560,7 +15725,7 @@
 
 
 /***/ },
-/* 10 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -15571,13 +15736,13 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _redux = __webpack_require__(11);
+	var _redux = __webpack_require__(17);
 
-	var _entitiesManipulator = __webpack_require__(22);
+	var _entitiesManipulator = __webpack_require__(28);
 
 	var _entitiesManipulator2 = _interopRequireDefault(_entitiesManipulator);
 
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(12);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -15658,7 +15823,7 @@
 
 
 /***/ },
-/* 11 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -15666,27 +15831,27 @@
 	exports.__esModule = true;
 	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
 
-	var _createStore = __webpack_require__(13);
+	var _createStore = __webpack_require__(19);
 
 	var _createStore2 = _interopRequireDefault(_createStore);
 
-	var _combineReducers = __webpack_require__(17);
+	var _combineReducers = __webpack_require__(23);
 
 	var _combineReducers2 = _interopRequireDefault(_combineReducers);
 
-	var _bindActionCreators = __webpack_require__(19);
+	var _bindActionCreators = __webpack_require__(25);
 
 	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
 
-	var _applyMiddleware = __webpack_require__(20);
+	var _applyMiddleware = __webpack_require__(26);
 
 	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
 
-	var _compose = __webpack_require__(21);
+	var _compose = __webpack_require__(27);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
-	var _warning = __webpack_require__(18);
+	var _warning = __webpack_require__(24);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -15707,10 +15872,10 @@
 	exports.bindActionCreators = _bindActionCreators2["default"];
 	exports.applyMiddleware = _applyMiddleware2["default"];
 	exports.compose = _compose2["default"];
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
 
 /***/ },
-/* 12 */
+/* 18 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -15807,7 +15972,7 @@
 
 
 /***/ },
-/* 13 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -15816,7 +15981,7 @@
 	exports.ActionTypes = undefined;
 	exports["default"] = createStore;
 
-	var _isPlainObject = __webpack_require__(14);
+	var _isPlainObject = __webpack_require__(20);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
@@ -16028,11 +16193,11 @@
 	}
 
 /***/ },
-/* 14 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isHostObject = __webpack_require__(15),
-	    isObjectLike = __webpack_require__(16);
+	var isHostObject = __webpack_require__(21),
+	    isObjectLike = __webpack_require__(22);
 
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -16100,7 +16265,7 @@
 
 
 /***/ },
-/* 15 */
+/* 21 */
 /***/ function(module, exports) {
 
 	/**
@@ -16126,7 +16291,7 @@
 
 
 /***/ },
-/* 16 */
+/* 22 */
 /***/ function(module, exports) {
 
 	/**
@@ -16160,7 +16325,7 @@
 
 
 /***/ },
-/* 17 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -16168,13 +16333,13 @@
 	exports.__esModule = true;
 	exports["default"] = combineReducers;
 
-	var _createStore = __webpack_require__(13);
+	var _createStore = __webpack_require__(19);
 
-	var _isPlainObject = __webpack_require__(14);
+	var _isPlainObject = __webpack_require__(20);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _warning = __webpack_require__(18);
+	var _warning = __webpack_require__(24);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -16290,10 +16455,10 @@
 	    return hasChanged ? nextState : state;
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
 
 /***/ },
-/* 18 */
+/* 24 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -16322,7 +16487,7 @@
 	}
 
 /***/ },
-/* 19 */
+/* 25 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -16378,7 +16543,7 @@
 	}
 
 /***/ },
-/* 20 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16388,7 +16553,7 @@
 	exports.__esModule = true;
 	exports["default"] = applyMiddleware;
 
-	var _compose = __webpack_require__(21);
+	var _compose = __webpack_require__(27);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
@@ -16440,7 +16605,7 @@
 	}
 
 /***/ },
-/* 21 */
+/* 27 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -16474,7 +16639,7 @@
 	}
 
 /***/ },
-/* 22 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16487,7 +16652,7 @@
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(12);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -16654,7 +16819,7 @@
 
 
 /***/ },
-/* 23 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16665,7 +16830,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _system = __webpack_require__(8);
+	var _system = __webpack_require__(14);
 
 	var _system2 = _interopRequireDefault(_system);
 
@@ -16714,7 +16879,7 @@
 
 
 /***/ },
-/* 24 */
+/* 30 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -16756,130 +16921,7 @@
 
 
 /***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _classCallCheck2 = __webpack_require__(3);
-
-	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-	var _createClass2 = __webpack_require__(26);
-
-	var _createClass3 = _interopRequireDefault(_createClass2);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var ComponentRenderer = function () {
-	  function ComponentRenderer(constructor, renderCallback) {
-	    (0, _classCallCheck3.default)(this, ComponentRenderer);
-
-	    this.constructor = constructor;
-	    this.renderCallback = renderCallback;
-	    this.id = ComponentRenderer.lastId++;
-	    ComponentRenderer.renderers[this.id] = this;
-	  }
-
-	  (0, _createClass3.default)(ComponentRenderer, [{
-	    key: "construct",
-	    value: function construct() {
-	      return new this.constructor();
-	    }
-	  }, {
-	    key: "applyChanges",
-	    value: function applyChanges(easelObject, changes, props) {
-	      this.renderCallback(easelObject, changes, props);
-	    }
-	  }, {
-	    key: "getId",
-	    value: function getId() {
-	      return this.id;
-	    }
-	  }], [{
-	    key: "getRenderer",
-	    value: function getRenderer(id) {
-	      return ComponentRenderer.renderers[id];
-	    }
-	  }]);
-	  return ComponentRenderer;
-	}();
-
-	ComponentRenderer.renderers = {};
-	ComponentRenderer.lastId = 0;
-	exports.default = ComponentRenderer;
-
-/***/ },
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	exports.__esModule = true;
-
-	var _defineProperty = __webpack_require__(27);
-
-	var _defineProperty2 = _interopRequireDefault(_defineProperty);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = function () {
-	  function defineProperties(target, props) {
-	    for (var i = 0; i < props.length; i++) {
-	      var descriptor = props[i];
-	      descriptor.enumerable = descriptor.enumerable || false;
-	      descriptor.configurable = true;
-	      if ("value" in descriptor) descriptor.writable = true;
-	      (0, _defineProperty2.default)(target, descriptor.key, descriptor);
-	    }
-	  }
-
-	  return function (Constructor, protoProps, staticProps) {
-	    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-	    if (staticProps) defineProperties(Constructor, staticProps);
-	    return Constructor;
-	  };
-	}();
-
-/***/ },
-/* 27 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(28), __esModule: true };
-
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var $ = __webpack_require__(29);
-	module.exports = function defineProperty(it, key, desc){
-	  return $.setDesc(it, key, desc);
-	};
-
-/***/ },
-/* 29 */
-/***/ function(module, exports) {
-
-	var $Object = Object;
-	module.exports = {
-	  create:     $Object.create,
-	  getProto:   $Object.getPrototypeOf,
-	  isEnum:     {}.propertyIsEnumerable,
-	  getDesc:    $Object.getOwnPropertyDescriptor,
-	  setDesc:    $Object.defineProperty,
-	  setDescs:   $Object.defineProperties,
-	  getKeys:    $Object.keys,
-	  getNames:   $Object.getOwnPropertyNames,
-	  getSymbols: $Object.getOwnPropertySymbols,
-	  each:       [].forEach
-	};
-
-/***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16888,21 +16930,25 @@
 	  value: true
 	});
 
-	var _jsecsCore = __webpack_require__(4);
+	var _ShapeRendererGenerator = __webpack_require__(32);
 
-	var generateComponentGroup = function generateComponentGroup(name, renderer, defaultProps) {
-	  var easelComponent = new _jsecsCore.Component('easelRenderable', {
-	    rendererId: renderer.id,
-	    componentName: name
-	  });
-	  var rendererComponent = new _jsecsCore.Component(name, defaultProps);
-	  return new _jsecsCore.ComponentGroup(easelComponent, rendererComponent);
+	var _ShapeRendererGenerator2 = _interopRequireDefault(_ShapeRendererGenerator);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var drwawer = function drwawer(shape, props, diff) {
+	  return shape.drawCircle(0, 0, props.radius);
 	};
 
-	exports.default = generateComponentGroup;
+	var strokeDrawer = function strokeDrawer(shape, props, diff) {
+	  return shape;
+	};
+
+	exports.default = (0, _ShapeRendererGenerator2.default)('circle', drwawer, strokeDrawer, {
+	  radius: 50
+	});
 
 /***/ },
-/* 31 */,
 /* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -16916,7 +16962,7 @@
 
 	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
 
-	var _classCallCheck2 = __webpack_require__(3);
+	var _classCallCheck2 = __webpack_require__(4);
 
 	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
 
@@ -16928,39 +16974,54 @@
 
 	var _inherits3 = _interopRequireDefault(_inherits2);
 
-	var _ComponentGenerator = __webpack_require__(30);
+	var _arguments = arguments;
+
+	var _ComponentGenerator = __webpack_require__(9);
 
 	var _ComponentGenerator2 = _interopRequireDefault(_ComponentGenerator);
 
-	var _ComponentRenderer2 = __webpack_require__(25);
+	var _ComponentRenderer2 = __webpack_require__(3);
 
 	var _ComponentRenderer3 = _interopRequireDefault(_ComponentRenderer2);
 
+	var _Filler = __webpack_require__(77);
+
+	var _Filler2 = _interopRequireDefault(_Filler);
+
+	var _lodash = __webpack_require__(12);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var CircleRenderer = function (_ComponentRenderer) {
-	  (0, _inherits3.default)(CircleRenderer, _ComponentRenderer);
+	exports.default = function (name, drawer, strokeDrawer, moreProps) {
+	  console.log(_arguments);
 
-	  function CircleRenderer() {
-	    (0, _classCallCheck3.default)(this, CircleRenderer);
-	    return (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(CircleRenderer).call(this, createjs.Shape, function (shape, diff, props) {
-	      shape.graphics.beginFill(props.color).drawCircle(0, 0, props.radius);
-	      shape.x = props.x;
-	      shape.y = props.y;
-	    }));
-	  }
+	  var CustomRenderer = function (_ComponentRenderer) {
+	    (0, _inherits3.default)(CustomRenderer, _ComponentRenderer);
 
-	  return CircleRenderer;
-	}(_ComponentRenderer3.default);
+	    function CustomRenderer() {
+	      (0, _classCallCheck3.default)(this, CustomRenderer);
+	      return (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(CustomRenderer).call(this, createjs.Shape, function (shape, diff, props, renderer) {
+	        var main = drawer((0, _Filler2.default)(shape.graphics, props.fill, renderer), props, diff);
+	        shape.x = props.x;
+	        shape.y = props.y;
+	      }));
+	    }
 
-	var circle = (0, _ComponentGenerator2.default)('circle', new CircleRenderer(), {
-	  x: 0,
-	  y: 0,
-	  color: 'red',
-	  radius: 100
-	});
+	    return CustomRenderer;
+	  }(_ComponentRenderer3.default);
 
-	exports.default = circle;
+	  var finalProperties = _lodash2.default.assign({
+	    x: 0,
+	    y: 0,
+	    fill: '#FF0000',
+	    strokeFill: '#FF0000',
+	    strokeWidth: 0
+	  }, moreProps);
+
+	  return (0, _ComponentGenerator2.default)(name, new CustomRenderer(), finalProperties);
+	};
 
 /***/ },
 /* 33 */
@@ -17192,7 +17253,7 @@
 
 	'use strict';
 	// ECMAScript 6 symbols shim
-	var $              = __webpack_require__(29)
+	var $              = __webpack_require__(8)
 	  , global         = __webpack_require__(40)
 	  , has            = __webpack_require__(50)
 	  , DESCRIPTORS    = __webpack_require__(51)
@@ -17446,7 +17507,7 @@
 /* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $          = __webpack_require__(29)
+	var $          = __webpack_require__(8)
 	  , createDesc = __webpack_require__(54);
 	module.exports = __webpack_require__(51) ? function(object, key, value){
 	  return $.setDesc(object, key, createDesc(1, value));
@@ -17483,7 +17544,7 @@
 /* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var def = __webpack_require__(29).setDesc
+	var def = __webpack_require__(8).setDesc
 	  , has = __webpack_require__(50)
 	  , TAG = __webpack_require__(57)('toStringTag');
 
@@ -17517,7 +17578,7 @@
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $         = __webpack_require__(29)
+	var $         = __webpack_require__(8)
 	  , toIObject = __webpack_require__(60);
 	module.exports = function(object, el){
 	  var O      = toIObject(object)
@@ -17565,7 +17626,7 @@
 
 	// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
 	var toIObject = __webpack_require__(60)
-	  , getNames  = __webpack_require__(29).getNames
+	  , getNames  = __webpack_require__(8).getNames
 	  , toString  = {}.toString;
 
 	var windowNames = typeof window == 'object' && Object.getOwnPropertyNames
@@ -17589,7 +17650,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	// all enumerable object keys, includes symbols
-	var $ = __webpack_require__(29);
+	var $ = __webpack_require__(8);
 	module.exports = function(it){
 	  var keys       = $.getKeys(it)
 	    , getSymbols = $.getSymbols;
@@ -17681,7 +17742,7 @@
 /* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(29);
+	var $ = __webpack_require__(8);
 	module.exports = function create(P, D){
 	  return $.create(P, D);
 	};
@@ -17713,7 +17774,7 @@
 
 	// Works with __proto__ only. Old v8 can't work with null proto objects.
 	/* eslint-disable no-proto */
-	var getDesc  = __webpack_require__(29).getDesc
+	var getDesc  = __webpack_require__(8).getDesc
 	  , isObject = __webpack_require__(67)
 	  , anObject = __webpack_require__(66);
 	var check = function(O, proto){
@@ -17740,6 +17801,24 @@
 
 /***/ },
 /* 77 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	exports.default = function (obj, fillValue, renderer) {
+	  if (fillValue[0] !== "#") {
+	    return obj.beginBitmapFill(renderer.loadQueue.getResult(fillValue));
+	  } else {
+	    return obj.beginFill(fillValue);
+	  }
+	};
+
+/***/ },
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17748,56 +17827,24 @@
 	  value: true
 	});
 
-	var _getPrototypeOf = __webpack_require__(33);
+	var _ShapeRendererGenerator = __webpack_require__(32);
 
-	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
-
-	var _classCallCheck2 = __webpack_require__(3);
-
-	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-	var _possibleConstructorReturn2 = __webpack_require__(45);
-
-	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
-
-	var _inherits2 = __webpack_require__(70);
-
-	var _inherits3 = _interopRequireDefault(_inherits2);
-
-	var _ComponentGenerator = __webpack_require__(30);
-
-	var _ComponentGenerator2 = _interopRequireDefault(_ComponentGenerator);
-
-	var _ComponentRenderer2 = __webpack_require__(25);
-
-	var _ComponentRenderer3 = _interopRequireDefault(_ComponentRenderer2);
+	var _ShapeRendererGenerator2 = _interopRequireDefault(_ShapeRendererGenerator);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var RectangleRenderer = function (_ComponentRenderer) {
-	  (0, _inherits3.default)(RectangleRenderer, _ComponentRenderer);
+	var drwawer = function drwawer(shape, props, diff) {
+	  return shape.drawRect(0, 0, props.width, props.height);
+	};
 
-	  function RectangleRenderer() {
-	    (0, _classCallCheck3.default)(this, RectangleRenderer);
-	    return (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(RectangleRenderer).call(this, createjs.Shape, function (shape, diff, props) {
-	      shape.graphics.beginFill(props.color).drawRect(0, 0, props.width, props.height);
-	      shape.x = props.x;
-	      shape.y = props.y;
-	    }));
-	  }
+	var strokeDrawer = function strokeDrawer(shape, props, diff) {
+	  return shape;
+	};
 
-	  return RectangleRenderer;
-	}(_ComponentRenderer3.default);
-
-	var circle = (0, _ComponentGenerator2.default)('rectangle', new RectangleRenderer(), {
-	  x: 0,
-	  y: 0,
+	exports.default = (0, _ShapeRendererGenerator2.default)('rectangle', drwawer, strokeDrawer, {
 	  width: 300,
-	  height: 100,
-	  color: 'blue'
+	  height: 100
 	});
-
-	exports.default = circle;
 
 /***/ }
 /******/ ]);

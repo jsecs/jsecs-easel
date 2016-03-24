@@ -13,8 +13,8 @@ export default class ComponentRenderer {
     return new this.constructor();
   }
 
-  applyChanges(easelObject, changes, props) {
-    this.renderCallback(easelObject, changes, props);
+  applyChanges(easelObject, changes, props, renderer) {
+    this.renderCallback(easelObject, changes, props, renderer);
   }
 
   getId() {

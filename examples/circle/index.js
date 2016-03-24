@@ -5,16 +5,17 @@ import Rectangle from '../../src/builtins/Rectangle'
 
 const engine = new ECS();
 const Renderer = new EaselRenderer(engine, "canvas");
+Renderer.loadFile('ground', './texture.jpg');
 
 const beginSystem = new System(engine, (entities) => {
   entities.add(new Entity().attachGroup(Circle));
-  entities.add(new Entity().attachGroup(Rectangle));
+  entities.add(new Entity().attachGroup(Rectangle).set('rectangle.fill', 'ground'));
 });
 
 const MoveSystem = new PeriodicSystem(engine, (entities) => {
   entities.forEach(({circle}) => {
     circle.x++;
-    circle.color = '#'+Math.floor(Math.random()*16777215).toString(16);
+    circle.fill = '#'+Math.floor(Math.random()*16777215).toString(16);
   });
 
   entities.forEach(({rectangle}) => {
