@@ -1,6 +1,5 @@
 import {System} from 'jsecs-core'
-import {shapeComponentName, render as shapeRender} from './ShapeComponent.js'
-const convertIntoNamespace = (name) => name;
+import ComponentRenderer from './ComponentRenderer.js'
 
 var lastEvent = null;
 
@@ -9,29 +8,21 @@ export default class Renderer {
     this.engine = engine;
     this.domId = id;
     this.stage = new createjs.Stage(this.domId);
-    this.shapes = {};
-    this.stage.update();
+    this.renderables = {};
 
     const renderSystem = new System(this.engine, (entities) => {
-      entities.forEach((entity) => {
-        const type = entity[convertIntoNamespace('renderable')].target;
-        const id = entity.id;
-        switch(type) {
-          case shapeComponentName:
-            const finalTarget = entity[shapeComponentName].target;
-            const props = entity[finalTarget];
-            if (typeof this.shapes[id] === 'undefined') {
-              this.shapes[id] = new createjs.Shape();
-              this.stage.addChild(this.shapes[id]);
-            }
-            const shape = this.shapes[id];
-            shapeRender(finalTarget, shape, props);
-            shape.x = props.x;
-            shape.y = props.y;
-            break;
-          default: 
-            throw "Unknown render target"
+      entities.forEach(({easelRenderable}) => {
+        const entity = easelRenderable.getEntity();
+        const entityId = entity.id;
+        const {rendererId, componentName} = easelRenderable;
+        const renderer = ComponentRenderer.getRenderer(rendererId);
+        if (typeof this.renderables[entityId] === 'undefined') {
+          this.renderables[entityId] = renderer.construct();
+          this.stage.addChild(this.renderables[entityId]);
         }
+        const easelObject = this.renderables[entityId];
+        const props = entity[componentName];
+        renderer.applyChanges(easelObject, props, props) // not computing diff at the moment
       });
       this.stage.update(lastEvent);
     });
